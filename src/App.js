@@ -19,23 +19,25 @@ import { ChatSideWriter } from "./ChatSide/ChatSideWriter/";
 import "./index.css";
 
 function App() {
-  const [estado, setEstado] = useState(false);
-
   const messageContent = useRef("");
   const searchTerms = useRef("");
 
   const contacts = [
     {
+      id: 1,
       name: "Juan",
       pic: "https://i.pinimg.com/originals/a0/4d/84/a04d849cf591c2f980548b982f461401.jpg",
       preview: "Hola, ¿Qué tal?",
     },
     {
+      id: 2,
       name: "Gabriel",
       pic: "https://i.pinimg.com/originals/a0/4d/84/a04d849cf591c2f980548b982f461401.jpg",
       preview: "¿Ya está listo el nuevo feature?",
     },
   ];
+
+  var results = contacts;
 
   const createMessageBubble = (message) => {
     const newM = React.createElement(
@@ -60,7 +62,10 @@ function App() {
     }
   };
 
-  const applySearchFilter = (filter) => {};
+  const applySearchFilter = (filter) => {
+    results = contacts.filter((contact) => contact.name === filter);
+    console.log(results);
+  };
 
   return (
     <Fragment>
@@ -79,7 +84,7 @@ function App() {
                 <h1 className="text-gray-400 text-left text-3xl m-2">Chats</h1>
                 <button
                   type="button"
-                  class="inline-flex items-center justify-center ml-20 rounded-lg border h-10 w-10 transition duration-500 ease-in-out text-gray-500 hover:bg-gray-300 focus:outline-none"
+                  className="inline-flex items-center justify-center ml-20 rounded-lg border h-10 w-10 transition duration-500 ease-in-out text-gray-500 hover:bg-gray-300 focus:outline-none"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -114,13 +119,13 @@ function App() {
                     }
                   />
                   <div
-                    class="relative items-center inset-y-0 hidden sm:flex"
+                    className="relative items-center inset-y-0 hidden sm:flex"
                     bis_skin_checked="1"
                     style={{ left: "75%", top: "-80%" }}
                   >
                     <button
                       type="button"
-                      class="inline-flex items-center justify-center rounded-full h-10 w-10 transition duration-500 ease-in-out text-gray-500 hover:bg-gray-300 focus:outline-none"
+                      className="inline-flex items-center justify-center rounded-full h-10 w-10 transition duration-500 ease-in-out text-gray-500 hover:bg-gray-300 focus:outline-none"
                       onClick={() =>
                         applySearchFilter(searchTerms.current.value)
                       }
@@ -130,12 +135,12 @@ function App() {
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
-                        class="h-6 w-6"
+                        className="h-6 w-6"
                       >
                         <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
                           d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                         ></path>
                       </svg>
@@ -145,8 +150,9 @@ function App() {
               </ChatBarListSearch>
               <ChatBarListContacts>
                 <ul>
-                  {contacts.map((contact) => (
+                  {results.map((contact) => (
                     <Contact
+                      key={contact.id}
                       name={contact.name}
                       pic={contact.pic}
                       preview={contact.preview}
@@ -166,14 +172,14 @@ function App() {
                 <button
                   type="button"
                   onClick={() => sendMessage()}
-                  class="inline-flex items-center justify-center rounded-lg px-4 py-3 transition duration-500 ease-in-out text-white bg-blue-500 hover:bg-blue-400 focus:outline-none"
+                  className="inline-flex items-center justify-center rounded-lg px-4 py-3 transition duration-500 ease-in-out text-white bg-blue-500 hover:bg-blue-400 focus:outline-none"
                 >
-                  <span class="font-bold">Enviar</span>
+                  <span className="font-bold">Enviar</span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 20 20"
                     fill="currentColor"
-                    class="h-6 w-6 ml-2 transform rotate-90"
+                    className="h-6 w-6 ml-2 transform rotate-90"
                   >
                     <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
                   </svg>
@@ -184,7 +190,7 @@ function App() {
                 type="text"
                 placeholder="¡Escribe tu mensaje!"
                 ref={messageContent}
-                class="w-full focus:outline-none focus:placeholder-gray-400 text-gray-600 placeholder-gray-600 pl-12 bg-gray-200 rounded-md py-3"
+                className="w-full focus:outline-none focus:placeholder-gray-400 text-gray-600 placeholder-gray-600 pl-12 bg-gray-200 rounded-md py-3"
               />
             </ChatSideWriter>
           </section>
