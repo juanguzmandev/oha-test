@@ -1,5 +1,4 @@
-import React, { Fragment, useState, useRef } from "react";
-import ReactDOM from "react-dom";
+import React, { Fragment, useState, useRef, useEffect } from "react";
 
 import { ChatBar } from "./ChatBar/";
 import { ChatBarHeader } from "./ChatBar/ChatBarHeader/";
@@ -13,12 +12,48 @@ import { Contact } from "./ChatBar/ChatBarList/ChatBarListContacts/Contact/";
 import { ChatSide } from "./ChatSide/";
 import { ChatSideHeader } from "./ChatSide/ChatSideHeader/";
 import { ChatSideMessages } from "./ChatSide/ChatSideMessages/";
-import { NewMessage } from "./ChatSide/ChatSideMessages/NewMessage/";
 import { ChatSideWriter } from "./ChatSide/ChatSideWriter/";
+
+import axios from "axios";
+//import { io } from "socket.io-client";
 
 import "./index.css";
 
 function App() {
+  const [token, setToken] = useState("");
+  const [logged, setLogged] = useState(false);
+  const [user, setUser] = useState({});
+
+  const askData = () => {
+    var email = prompt("Email");
+    var pw = prompt("Contraseña");
+
+    return { email: email, pw: pw };
+  };
+
+  useEffect(() => {
+    if (token === "") {
+      var login = askData();
+
+      if (login.email !== "" || login.pw !== "") {
+        axios
+          .post("https://api.chat.oha.services/api/token/?create=false", {
+            email: login.email,
+            password: login.pw,
+          })
+          .then((response) => {
+            console.log(response);
+          })
+          .catch((error) => {
+            alert("Un error ha ocurrido, por favor intente de nuevo más tarde");
+          });
+      } else {
+        alert("Los datos no son correctos. Por favor, ingréselos de nuevo");
+        askData();
+      }
+    }
+  }, []);
+
   const messageContent = useRef("");
   const searchTerms = useRef("");
 
@@ -35,28 +70,92 @@ function App() {
       pic: "https://i.pinimg.com/originals/a0/4d/84/a04d849cf591c2f980548b982f461401.jpg",
       preview: "¿Ya está listo el nuevo feature?",
     },
+    {
+      id: 3,
+      name: "Jesús",
+      pic: "https://i.pinimg.com/originals/a0/4d/84/a04d849cf591c2f980548b982f461401.jpg",
+      preview: "¿Qué hay de nuevo para hoy?",
+    },
+    {
+      id: 4,
+      name: "Pedro",
+      pic: "https://i.pinimg.com/originals/a0/4d/84/a04d849cf591c2f980548b982f461401.jpg",
+      preview: "Buenos días",
+    },
+    {
+      id: 5,
+      name: "Fernando",
+      pic: "https://i.pinimg.com/originals/a0/4d/84/a04d849cf591c2f980548b982f461401.jpg",
+      preview: "¿Cuáles son los cambios para hoy?",
+    },
+    {
+      id: 6,
+      name: "Rosalba",
+      pic: "https://i.pinimg.com/originals/a0/4d/84/a04d849cf591c2f980548b982f461401.jpg",
+      preview: "¿Qué comiste hoy?",
+    },
+    {
+      id: 7,
+      name: "Andrés",
+      pic: "https://i.pinimg.com/originals/a0/4d/84/a04d849cf591c2f980548b982f461401.jpg",
+      preview: "¿Qué tal les fué hoy?",
+    },
+    {
+      id: 8,
+      name: "Gerardo",
+      pic: "https://i.pinimg.com/originals/a0/4d/84/a04d849cf591c2f980548b982f461401.jpg",
+      preview: "¿Para cuándo estará listo?",
+    },
+    {
+      id: 9,
+      name: "María",
+      pic: "https://i.pinimg.com/originals/a0/4d/84/a04d849cf591c2f980548b982f461401.jpg",
+      preview: "¿Vas a la oficina hoy?",
+    },
   ];
+
+  var messages = [];
 
   var results = contacts;
 
   const createMessageBubble = (message) => {
-    const newM = React.createElement(
-      NewMessage,
-      {
-        pic: "https://i.pinimg.com/originals/a0/4d/84/a04d849cf591c2f980548b982f461401.jpg",
-        type: "out",
-      },
-      message
-    );
-
-    ReactDOM.render(newM, document.getElementById("messages"));
+    messages.push(message);
+    console.log(messages);
     messageContent.current.value = "";
   };
 
   const sendMessage = () => {
     const message = messageContent.current.value;
+
     if (message !== "") {
-      createMessageBubble(message);
+      let socket = new WebSocket(
+        "wss://api.chat.oha.services/ws/rooms/?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6Imd1em1hbmp1YW4zMDExQGdtYWlsLmNvbSIsImlhdCI6MTY0ODgyNzg4MywiZXhwIjoxNjQ4OTE0MjgzLCJqdGkiOiJkNjYyZGUwOS05NTBkLTQ4YzYtYjAyNC0wM2NjNTNmODA4OTgiLCJvcmlnX2lhdCI6MTY0ODgyNzg4M30.KtlqqNNCw4kzOHx9Q9hoPgeNNLuZX9BhiFo0DC3mj1A"
+      );
+
+      socket.onopen = (e) => {
+        {/*alert("[open] Conexión establecida");*/}
+        {/*alert("Enviando al servidor");*/}
+        socket.send(
+          JSON.stringify({
+            type: "chat",
+            data: {
+              message: message,
+            },
+          })
+        );
+      };
+
+      socket.onmessage = function (event) {
+        {/*alert("[message] : " + event.data);*/}
+        var newMessage = JSON.parse(event.data);
+        console.log(newMessage);
+
+        if(newMessage.type === 'chat') {
+          createMessageBubble(newMessage);
+          console.log(newMessage);
+        }
+      };
+
     } else {
       alert("Mensaje vacío. Escribe algo para enviar");
     }
@@ -64,7 +163,6 @@ function App() {
 
   const applySearchFilter = (filter) => {
     results = contacts.filter((contact) => contact.name === filter);
-    console.log(results);
   };
 
   return (
@@ -72,9 +170,12 @@ function App() {
       <div className="w-full flex justify-center my-6 items-center">
         <img className="w-12 h-12" alt="Oha Services Logo" src="favicon.ico" />
       </div>
-      <div className="w-6/12 flex flex-row m-20 mt-0 rounded-lg shadow-2xl divide-x-2 justify-center p-1">
+      <div
+        className="w-6/12 flex flex-row m-20 mt-0 rounded-lg shadow-2xl divide-x-2 justify-center p-1 overflow-hidden"
+        style={{ height: "46em" }}
+      >
         <ChatBar>
-          <aside className="flex flex-col w-1/4 content-start divide-y-2">
+          <aside className="flex flex-col w-1/4 content-start divide-y-2 overflow-scroll overflow-x-hidden">
             {/*<p>{estado === true ? "Verdad" : "Falso"}</p>*/}
             <ChatBarHeader>
               <div
@@ -166,7 +267,7 @@ function App() {
         <ChatSide>
           <section className="flex flex-col w-3/4 justify-center m-2 ml-0 mr-0">
             <ChatSideHeader />
-            <ChatSideMessages />
+            <ChatSideMessages messages={messages}/>
             <ChatSideWriter
               button={
                 <button
